@@ -16,6 +16,7 @@ namespace Domain
 
         public double StanjeNaRacunu { get; set; }
 
+
         public Korisnik() { }
 
         public Korisnik(string id, string ime, string prezime, double stanjeNaRacunu)
