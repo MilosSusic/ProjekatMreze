@@ -1,7 +1,12 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\User\\Desktop\\MREZE PROJEKAT\\ProjekatBanka\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\bozan\\onedrive\\radna povr\u0161ina\\projekatmreze\\projekatbanka\\domain\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|solutionrelative:domain\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,11 +14,28 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\Domain\\Class1.cs",
+              "RelativeDocumentMoniker": "Domain\\Class1.cs",
+              "ToolTip": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\Domain\\Class1.cs",
+              "RelativeToolTip": "Domain\\Class1.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAdAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-26T11:36:01.306Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             }
           ]
         }
