@@ -8,6 +8,7 @@ namespace Domain
 {
     public class Korisnik
     {
+
         public string Id { get; set; }
 
         public string Ime { get; set; }
