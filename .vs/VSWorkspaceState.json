@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\ProjekatBanka",
+    "\\ProjekatBanka\\Domain"
   ],
-  "SelectedNode": "\\ProjekatBanka.sln",
+  "SelectedNode": "\\ProjekatBanka\\Domain\\Korisnik.cs",
   "PreviewInSolutionExplorer": false
 }

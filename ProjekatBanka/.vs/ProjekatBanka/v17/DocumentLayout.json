@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\",
+  "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\MilosSusic\\ProjekatMreze\\ProjekatBanka\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\bozan\\onedrive\\radna povr\u0161ina\\projekatmreze\\projekatbanka\\domain\\korisnik.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\user\\source\\repos\\milossusic\\projekatmreze\\projekatbanka\\domain\\korisnik.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|solutionrelative:domain\\korisnik.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -28,9 +28,9 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Korisnik.cs",
-              "DocumentMoniker": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\MilosSusic\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
               "RelativeDocumentMoniker": "Domain\\Korisnik.cs",
-              "ToolTip": "C:\\Users\\bozan\\OneDrive\\Radna povr\u0161ina\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\MilosSusic\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
               "RelativeToolTip": "Domain\\Korisnik.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAB8AAAAJAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
