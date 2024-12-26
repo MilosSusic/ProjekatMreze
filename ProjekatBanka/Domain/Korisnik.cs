@@ -9,7 +9,7 @@ namespace Domain
     public class Korisnik
     {
 
-        public string Id { get; set; }
+        public string IdKorisnik { get; set; }
 
         public string Ime { get; set; }
 
@@ -22,7 +22,7 @@ namespace Domain
 
         public Korisnik(string id, string ime, string prezime, double stanjeNaRacunu)
         {
-            Id = id;
+            IdKorisnik = id;
             Ime = ime;
             Prezime = prezime;
             StanjeNaRacunu = stanjeNaRacunu;
