@@ -1,0 +1,6 @@
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\bin\Debug\Domain.dll
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\bin\Debug\Domain.pdb
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\obj\Debug\Domain.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\obj\Debug\Domain.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\obj\Debug\Domain.dll
+C:\Users\User\Desktop\MREZE PROJEKAT\ProjekatBanka\Domain\obj\Debug\Domain.pdb
