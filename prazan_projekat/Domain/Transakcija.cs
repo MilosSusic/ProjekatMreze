@@ -28,7 +28,6 @@ namespace Domain
             Datum = datum;
         }
 
-        public Transakcija() { } 
 
     }
 }
