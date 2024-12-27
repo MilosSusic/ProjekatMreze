@@ -1,24 +1,7 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{9FB56A73-79E3-4661-8F13-749D653A57D1}|Server\\Server.csproj|c:\\users\\bozan\\source\\repos\\projekatmreze\\projekatbanka\\server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9FB56A73-79E3-4661-8F13-749D653A57D1}|Server\\Server.csproj|solutionrelative:server\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\bozan\\source\\repos\\projekatmreze\\projekatbanka\\domain\\enkriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|solutionrelative:domain\\enkriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\bozan\\source\\repos\\projekatmreze\\projekatbanka\\domain\\transakcija.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|solutionrelative:domain\\transakcija.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|c:\\users\\bozan\\source\\repos\\projekatmreze\\projekatbanka\\domain\\korisnik.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{571A5937-684B-40E9-A026-AD94DC763079}|Domain\\Domain.csproj|solutionrelative:domain\\korisnik.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -26,63 +9,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Server.cs",
-              "DocumentMoniker": "C:\\Users\\bozan\\Source\\Repos\\ProjekatMreze\\ProjekatBanka\\Server\\Server.cs",
-              "RelativeDocumentMoniker": "Server\\Server.cs",
-              "ToolTip": "C:\\Users\\bozan\\Source\\Repos\\ProjekatMreze\\ProjekatBanka\\Server\\Server.cs",
-              "RelativeToolTip": "Server\\Server.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-27T07:51:53.057Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Enkriptor.cs",
-              "DocumentMoniker": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Enkriptor.cs",
-              "RelativeDocumentMoniker": "Domain\\Enkriptor.cs",
-              "ToolTip": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Enkriptor.cs",
-              "RelativeToolTip": "Domain\\Enkriptor.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAQAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-27T07:14:42.092Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Transakcija.cs",
-              "DocumentMoniker": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Transakcija.cs",
-              "RelativeDocumentMoniker": "Domain\\Transakcija.cs",
-              "ToolTip": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Transakcija.cs",
-              "RelativeToolTip": "Domain\\Transakcija.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-27T07:14:23.775Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Korisnik.cs",
-              "DocumentMoniker": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
-              "RelativeDocumentMoniker": "Domain\\Korisnik.cs",
-              "ToolTip": "C:\\Users\\bozan\\source\\repos\\ProjekatMreze\\ProjekatBanka\\Domain\\Korisnik.cs",
-              "RelativeToolTip": "Domain\\Korisnik.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-26T15:04:55.839Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Bookmark",
