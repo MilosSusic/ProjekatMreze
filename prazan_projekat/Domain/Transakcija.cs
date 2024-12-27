@@ -14,11 +14,11 @@ namespace Domain
 
         public Tip_Transakcije tipTransakcije { get; set; }
 
-
         public double IznosTransakcije { get; set; }
 
-
         public string Datum { get; set; }
+
+        public Transakcija() { }
 
         public Transakcija(string iDTransakcije, Tip_Transakcije tipTransakcije, double iznosTransakcije, string datum)
         {
@@ -29,7 +29,6 @@ namespace Domain
         }
 
         public Transakcija() { } 
-
 
     }
 }
