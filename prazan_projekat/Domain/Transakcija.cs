@@ -30,5 +30,6 @@ namespace Domain
 
         public Transakcija() { } 
 
+
     }
 }
