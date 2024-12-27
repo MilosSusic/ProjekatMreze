@@ -6,7 +6,29 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
-    public class Class1
+    public class Korisnik
     {
+        public string IdKorisnik { get; set; }
+
+        public string Ime { get; set; }
+
+        public string Prezime { get; set; }
+
+        public double StanjeNaRacunu { get; set; }
+
+        public Korisnik() { }
+
+        public Korisnik(string id, string ime, string prezime, double stanjeNaRacunu)
+        {
+            IdKorisnik = id;
+            Ime = ime;
+            Prezime = prezime;
+            StanjeNaRacunu = stanjeNaRacunu;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
     }
 }
