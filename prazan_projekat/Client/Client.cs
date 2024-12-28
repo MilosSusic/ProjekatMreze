@@ -7,6 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.Serialization;
+using Domain;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Serialization.Formatters.Binary;
+
 
 namespace Client
 {
@@ -27,6 +31,8 @@ namespace Client
             Console.WriteLine("Klijent je uspesno povezan sa serverom!");
             #endregion
 
+            BinaryFormatter formatter = new BinaryFormatter();
+
             while (true)
             {
                 Console.WriteLine("Unesite id korisnika");
@@ -36,10 +42,23 @@ namespace Client
                 Console.WriteLine("Unesite prezime korisnika");
                 string prezime = Console.ReadLine();
 
+                Korisnik korisnik = new Korisnik
+                {
+                    IdKorisnik = id,
+                    Ime = ime,
+                    Prezime = prezime
+                };
 
-              
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    formatter.Serialize(ms, korisnik);
+                    byte[] data = ms.ToArray();
 
-             
+                    clientSocket.Send(data);
+                }
+
+
+
 
             }
         }
