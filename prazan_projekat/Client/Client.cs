@@ -57,9 +57,6 @@ namespace Client
                     clientSocket.Send(data);
                 }
 
-
-
-
             }
         }
     }
