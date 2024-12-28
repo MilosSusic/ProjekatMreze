@@ -19,6 +19,7 @@ namespace Domain
             return enkriptovaniPodaci;
         }
 
+
         // Metoda za dekripciju (dekodiranje iz Base64)
         public string Dekriptuj(string enkriptovaniPodaci)
         {
