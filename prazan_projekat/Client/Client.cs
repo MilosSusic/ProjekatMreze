@@ -49,10 +49,15 @@ namespace Client
                     Prezime = prezime
                 };
 
+
                 using (MemoryStream ms = new MemoryStream())
                 {
                     formatter.Serialize(ms, korisnik);
                     byte[] data = ms.ToArray();
+
+
+              
+
 
                     clientSocket.Send(data);
                 }
