@@ -39,7 +39,7 @@ namespace Server
 
             byte[] buffer = new byte[4096];
 
-            List<Korisnik> rezultati = new List<Korisnik>()
+            List<Korisnik> korisnici = new List<Korisnik>()
             {
                 new Korisnik("123747","Milos","Susic",0),
                 new Korisnik("214532","Bozana","Todorovic",0)
@@ -59,10 +59,19 @@ namespace Server
                     using (MemoryStream ms = new MemoryStream(buffer, 0, brBajta))
                     {
                         Korisnik korisnik = (Korisnik)formatter.Deserialize(ms);
-                        rezultati.Add(korisnik);
+                        korisnici.Add(korisnik);
 
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
+
+
+                        foreach(var p in korisnici)
+                        {
+                            if (p.IdKorisnik == korisnik.IdKorisnik)
+                            {
+                                Console.WriteLine("Upsjesno je prijavljen");
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
