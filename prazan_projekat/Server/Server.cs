@@ -38,6 +38,7 @@ namespace Server
 
             #endregion
 
+
             byte[] buffer = new byte[4096];
 
             List<Korisnik> korisnici = new List<Korisnik>()
