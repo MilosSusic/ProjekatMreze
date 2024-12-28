@@ -68,6 +68,7 @@ namespace Server
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
                         bool odgovor =korisnik.Uspjesnost(korisnici);
+
                         if (odgovor == true)
                         {
                             info_prijava = "USPJESAN";
