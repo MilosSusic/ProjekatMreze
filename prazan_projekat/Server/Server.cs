@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 using Domain;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Server
 {
     public class Server
-    {    
-
+    {
+        
         static void Main(string[] args)
         {
-
+            string info_prijava;
             #region Inicijalizacija i povezivanje
 
             Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -64,14 +65,16 @@ namespace Server
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
-
+                        
                         foreach(var p in korisnici)
                         {
                             if (p.IdKorisnik == korisnik.IdKorisnik)
                             {
-                                Console.WriteLine("Upsjesno je prijavljen");
+                                 info_prijava = "USPJESNO";
+                                acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
                             }
                         }
+
                     }
                 }
                 catch (Exception ex)
