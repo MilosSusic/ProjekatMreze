@@ -30,9 +30,9 @@ namespace Domain
         public bool Uspjesnost(List<Korisnik> korisnici)
         {
             Korisnik korisnik = new Korisnik();
-             foreach(var k in korisnici)
+            foreach (var k in korisnici)
             {
-                if(k.IdKorisnik == korisnik.IdKorisnik)
+                if (k.IdKorisnik == korisnik.IdKorisnik)
                 {
                     return true;
                 }
