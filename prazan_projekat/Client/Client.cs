@@ -54,11 +54,6 @@ namespace Client
                 {
                     formatter.Serialize(ms, korisnik);
                     byte[] data = ms.ToArray();
-
-
-              
-
-
                     clientSocket.Send(data);
                 }
 
