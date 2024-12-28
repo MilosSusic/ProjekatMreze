@@ -54,8 +54,7 @@ namespace Client
                 using (MemoryStream ms = new MemoryStream())
                 {
                     formatter.Serialize(ms, korisnik);
-                    byte[] data = ms.ToArray();           
-
+                    byte[] data = ms.ToArray();
                     clientSocket.Send(data);
                 }
 
