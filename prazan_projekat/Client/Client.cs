@@ -49,6 +49,7 @@ namespace Client
                     Prezime = prezime
                 };
 
+
                 using (MemoryStream ms = new MemoryStream())
                 {
                     formatter.Serialize(ms, korisnik);
