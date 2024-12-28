@@ -43,7 +43,9 @@ namespace Server
             List<Korisnik> korisnici = new List<Korisnik>()
             {
                 new Korisnik("123747","Milos","Susic",0),
-                new Korisnik("214532","Bozana","Todorovic",0)
+                new Korisnik("214532","Bozana","Todorovic",0),
+                new Korisnik("21342","Ime1","Prezime1",0),
+                new Korisnik("21532","Ime2","Prezime2",0)
             };
 
             BinaryFormatter formatter = new BinaryFormatter();
@@ -65,16 +67,21 @@ namespace Server
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
-                      
-                            foreach (var p in korisnici)
+
+                        foreach (var p in korisnici)
+                        {
+                            if (p.IdKorisnik == korisnik.IdKorisnik)
                             {
-                                if (p.IdKorisnik == korisnik.IdKorisnik)
-                                {
-                                    info_prijava = "USPJESNO";
-                                    acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
-                                }
+                                info_prijava = "USPJESNO";
                             }
-                            
+                            else
+                            {
+                                info_prijava = "NEUSPJESNO";
+                            }
+                        }
+                        acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
+
+
                     }
                 }
                 catch (Exception ex)
