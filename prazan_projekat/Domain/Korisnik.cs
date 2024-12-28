@@ -9,6 +9,7 @@ namespace Domain
     [Serializable]
     public class Korisnik
     {
+        List<Korisnik> korisnici = new List<Korisnik>();
         public string IdKorisnik { get; set; }
 
         public string Ime { get; set; }
@@ -26,7 +27,18 @@ namespace Domain
             Prezime = prezime;
             StanjeNaRacunu = stanjeNaRacunu;
         }
-
+        public bool Uspjesnost(List<Korisnik> korisnici)
+        {
+            Korisnik korisnik = new Korisnik();
+             foreach(var k in korisnici)
+            {
+                if(k.IdKorisnik == korisnik.IdKorisnik)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public override string ToString()
         {
             return base.ToString();

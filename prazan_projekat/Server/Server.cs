@@ -67,21 +67,17 @@ namespace Server
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
-
-                        foreach (var p in korisnici)
+                        bool odgovor =korisnik.Uspjesnost(korisnici);
+                        if (odgovor == true)
                         {
-                            if (p.IdKorisnik == korisnik.IdKorisnik)
-                            {
-                                info_prijava = "USPJESNO";
-                            }
-                            else
-                            {
-                                info_prijava = "NEUSPJESNO";
-                            }
+                            info_prijava = "USPJESAN";
+                            acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
                         }
-                        acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
-
-
+                        else
+                        {
+                            info_prijava = "NEUSPJESAN";
+                            acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
+                        }
                     }
                 }
                 catch (Exception ex)
