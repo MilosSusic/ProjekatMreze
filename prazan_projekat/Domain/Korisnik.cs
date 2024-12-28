@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
+    [Serializable]
     public class Korisnik
     {
         public string IdKorisnik { get; set; }
