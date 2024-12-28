@@ -11,7 +11,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Server
-{
+{     
     public class Server
     {
         
@@ -65,16 +65,16 @@ namespace Server
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
-                        
-                        foreach(var p in korisnici)
-                        {
-                            if (p.IdKorisnik == korisnik.IdKorisnik)
+                      
+                            foreach (var p in korisnici)
                             {
-                                 info_prijava = "USPJESNO";
-                                acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
+                                if (p.IdKorisnik == korisnik.IdKorisnik)
+                                {
+                                    info_prijava = "USPJESNO";
+                                    acceptedSocket.Send(Encoding.UTF8.GetBytes(info_prijava));
+                                }
                             }
-                        }
-
+                            
                     }
                 }
                 catch (Exception ex)

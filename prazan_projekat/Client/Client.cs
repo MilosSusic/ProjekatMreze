@@ -58,6 +58,10 @@ namespace Client
                     clientSocket.Send(data);
                 }
 
+                clientSocket.Receive(buffer);
+                string poruka = Encoding.UTF8.GetString(buffer);
+                Console.WriteLine("Odgovor je:"+poruka);
+
             }
             #endregion
 
