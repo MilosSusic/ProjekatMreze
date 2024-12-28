@@ -5,3 +5,13 @@ C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.cspro
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.exe
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.pdb
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\bin\Debug\Client.exe.config
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\bin\Debug\Client.exe
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\bin\Debug\Client.pdb
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\bin\Debug\Domain.dll
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\bin\Debug\Domain.pdb
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\obj\Debug\Client.csproj.AssemblyReference.cache
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\obj\Debug\Client.csproj.Up2Date
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\obj\Debug\Client.exe
+C:\Users\bozan\OneDrive\Radna površina\ProjekatMreze\prazan_projekat\Client\obj\Debug\Client.pdb
