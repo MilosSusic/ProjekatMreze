@@ -70,7 +70,6 @@ namespace Server
                     Console.WriteLine($"Došlo je do greške: {ex.Message}");
                     break;
                 }
-
             }
 
             #endregion
