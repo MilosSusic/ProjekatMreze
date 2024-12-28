@@ -5,3 +5,6 @@ C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.cspro
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.exe
 C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.pdb
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\bin\Debug\Domain.dll
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\bin\Debug\Domain.pdb
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.csproj.Up2Date
