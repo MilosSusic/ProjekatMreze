@@ -33,6 +33,7 @@ namespace Client
 
             BinaryFormatter formatter = new BinaryFormatter();
 
+            #region Slanje testova
             while (true)
             {
                 Console.WriteLine("Unesite id korisnika");
@@ -53,16 +54,21 @@ namespace Client
                 using (MemoryStream ms = new MemoryStream())
                 {
                     formatter.Serialize(ms, korisnik);
-                    byte[] data = ms.ToArray();
-
-
-              
-
+                    byte[] data = ms.ToArray();           
 
                     clientSocket.Send(data);
                 }
 
             }
+            #endregion
+
+
+            #region Zatvaranje
+
+            Console.WriteLine("Klijent zavrsava sa radom");
+            Console.ReadKey();
+            clientSocket.Close();
+            #endregion
         }
     }
 }
