@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Domain
 {
-    [Serializable]
     internal class Transakcija
     {
         public enum Tip_Transakcije { uplata, isplata, transfer };
