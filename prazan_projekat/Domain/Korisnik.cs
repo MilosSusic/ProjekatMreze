@@ -27,12 +27,12 @@ namespace Domain
             Prezime = prezime;
             StanjeNaRacunu = stanjeNaRacunu;
         }
-        public bool Uspjesnost(List<Korisnik> korisnici)
+        public bool Uspjesnost(List<Korisnik> korisnici, string id)
         {
             Korisnik korisnik = new Korisnik();
             foreach (var k in korisnici)
             {
-                if (k.IdKorisnik == korisnik.IdKorisnik)
+                if (k.IdKorisnik == id)
                 {
                     return true;
                 }
