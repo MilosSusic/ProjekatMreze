@@ -1,0 +1,7 @@
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\bin\Debug\Server.exe.config
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\bin\Debug\Server.exe
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\bin\Debug\Server.pdb
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\obj\Debug\Server.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\obj\Debug\Server.exe
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Server\obj\Debug\Server.pdb

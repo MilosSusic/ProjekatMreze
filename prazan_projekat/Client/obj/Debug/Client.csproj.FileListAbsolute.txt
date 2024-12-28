@@ -1,0 +1,7 @@
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\bin\Debug\Client.exe.config
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\bin\Debug\Client.exe
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\bin\Debug\Client.pdb
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.exe
+C:\Users\User\Desktop\PROJEKAT MRZ\prazan_projekat\Client\obj\Debug\Client.pdb
