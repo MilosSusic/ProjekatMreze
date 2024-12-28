@@ -62,12 +62,12 @@ namespace Server
                     using (MemoryStream ms = new MemoryStream(buffer, 0, brBajta))
                     {
                         Korisnik korisnik = (Korisnik)formatter.Deserialize(ms);
-                        korisnici.Add(korisnik);
+                      //  korisnici.Add(korisnik);
 
                         Console.WriteLine("Primljen rezultat:");
                         Console.WriteLine($"Id: {korisnik.IdKorisnik}, Ime: {korisnik.Ime}, Prezime: {korisnik.Prezime}");
 
-                        bool odgovor =korisnik.Uspjesnost(korisnici);
+                        bool odgovor =korisnik.Uspjesnost(korisnici,korisnik.IdKorisnik);
 
                         if (odgovor == true)
                         {
