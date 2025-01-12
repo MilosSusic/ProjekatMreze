@@ -1,0 +1,10 @@
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\bin\Debug\Filijala.exe.config
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\bin\Debug\Filijala.exe
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\bin\Debug\Filijala.pdb
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\bin\Debug\Domain.dll
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\bin\Debug\Domain.pdb
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\obj\Debug\Filijala.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\obj\Debug\Filijala.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\obj\Debug\Filijala.csproj.Up2Date
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\obj\Debug\Filijala.exe
+C:\Users\User\Desktop\PROJEKAT MREZ\prazan_projekat\Filijala\obj\Debug\Filijala.pdb
