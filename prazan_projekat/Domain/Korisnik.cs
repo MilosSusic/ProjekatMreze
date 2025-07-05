@@ -12,7 +12,7 @@ namespace Domain
         public string Lozinka { get; set; }
         public string Ime { get; set; }
         public string Prezime { get; set; }
-        public decimal Stanje { get; set; } // novčano stanje na računu
+        public decimal Stanje { get; set; } 
         public decimal MaksimalniIznosZaPodizanje { get; set; }
         public string BrojRacuna { get; set; }
 
@@ -27,7 +27,6 @@ namespace Domain
 
         private static string GenerisiBrojRacuna()
         {
-            // Generiše jedinstveni broj računa u formatu "ACC-XXXXXXXX"
             return "ACC-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
         }
     }
