@@ -9,97 +9,95 @@ using System.Text;
 
 namespace Server
 {
-
     class Program
     {
         private const int Port = 5000;
-        private readonly Socket _serverSocket;
+        private readonly Socket _serverSoket;
         private readonly Dictionary<string, Korisnik> _korisnici;
         private readonly List<Transakcija> _transakcije;
-        private bool _prokrenutaAplikacija;
+        private bool _aplikacijaPokrenuta;
 
         public Program()
         {
-            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _serverSoket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _korisnici = new Dictionary<string, Korisnik>();
             _transakcije = new List<Transakcija>();
         }
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Pokretanje Servera...");
+            Console.WriteLine("Pokretanje servera...");
 
             Program server = new Program();
-            server.Start();
+            server.Pokreni();
         }
 
-        public void Start()
+        public void Pokreni()
         {
             try
             {
-                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, Port));
+                _serverSoket.Bind(new IPEndPoint(IPAddress.Any, Port));
                 Console.WriteLine($"Server pokrenut na portu {Port}");
 
-                _prokrenutaAplikacija = true;
+                _aplikacijaPokrenuta = true;
 
-                while (_prokrenutaAplikacija)
+                while (_aplikacijaPokrenuta)
                 {
                     try
                     {
-                        byte[] buffer = new byte[2048];
-                        EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                        byte[] bafer = new byte[2048];
+                        EndPoint krajnjaAdresa = new IPEndPoint(IPAddress.Any, 0);
 
-                        int bytesReceived = _serverSocket.ReceiveFrom(buffer, ref remoteEndPoint);
+                        int brojBajtova = _serverSoket.ReceiveFrom(bafer, ref krajnjaAdresa);
 
-                        if (bytesReceived > 0)
+                        if (brojBajtova > 0)
                         {
-                            var zahtev = (Tuple<string, object>)DeserializeObject(buffer);
+                            var zahtev = (Tuple<string, object>)DeserijalizujObjekat(bafer);
                             var odgovor = ObradiZahtevFilijale(zahtev.Item1, zahtev.Item2);
-                            PosaljiOdgovor(_serverSocket, odgovor, remoteEndPoint);
+                            PosaljiOdgovor(_serverSoket, odgovor, krajnjaAdresa);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error: {ex.Message}");
+                        Console.WriteLine($"Greška: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Greška: {ex.Message}");
             }
             finally
             {
-                if (_serverSocket != null)
-                    _serverSocket.Close();
+                _serverSoket?.Close();
             }
         }
 
-        private Dictionary<string, string> ObradiZahtevFilijale(string type, object data)
+        private Dictionary<string, string> ObradiZahtevFilijale(string tip, object podaci)
         {
             try
             {
-                switch (type)
+                switch (tip)
                 {
                     case "INIT":
                         return ObradiInicijalizaciju();
                     case "REGISTER":
-                        return ObradiRegistraciju((Korisnik)data);
+                        return ObradiRegistraciju((Korisnik)podaci);
                     case "LOGIN":
-                        return ObradiLogin((Korisnik)data);
+                        return ObradiPrijavu((Korisnik)podaci);
                     case "BALANCE":
-                        return ObradiProveruStanja((Korisnik)data);
+                        return ObradiProveruStanja((Korisnik)podaci);
                     case "VALIDATE_TRANSACTION":
-                        return ObradiValidnostTransakcije((Transakcija)data);
+                        return ObradiValidnostTransakcije((Transakcija)podaci);
                     case "DEPOSIT":
-                        return ObradiUplatu((Transakcija)data);
+                        return ObradiUplatu((Transakcija)podaci);
                     case "WITHDRAW":
-                        return ObradiIsplatu((Transakcija)data);
+                        return ObradiIsplatu((Transakcija)podaci);
                     default:
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
-                            ["message"] = "Invalid request type"
+                            ["message"] = "Nepoznat tip zahteva"
                         };
                 }
             }
@@ -130,46 +128,48 @@ namespace Server
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Username already exists"
+                    ["message"] = "Korisničko ime već postoji"
                 };
             }
 
             _korisnici.Add(korisnik.KorisnickoIme, korisnik);
             Console.WriteLine($"Korisnik registrovan: {korisnik.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = "Registration successful",
+                ["message"] = "Registracija uspešna",
                 ["username"] = korisnik.KorisnickoIme,
                 ["accountNumber"] = korisnik.BrojRacuna
             };
         }
 
-        private Dictionary<string, string> ObradiLogin(Korisnik korisnik)
+        private Dictionary<string, string> ObradiPrijavu(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var storedUser))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvaniKorisnik))
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not found"
+                    ["message"] = "Korisnik nije pronađen"
                 };
             }
 
-            if (storedUser.Sifra != korisnik.Sifra)
+            if (sacuvaniKorisnik.Sifra != korisnik.Sifra)
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Invalid password"
+                    ["message"] = "Neispravna lozinka"
                 };
             }
 
             Console.WriteLine($"Korisnik prijavljen: {korisnik.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = "Login successful",
+                ["message"] = "Prijava uspešna",
                 ["username"] = korisnik.KorisnickoIme,
                 ["accountNumber"] = korisnik.BrojRacuna
             };
@@ -177,31 +177,31 @@ namespace Server
 
         private Dictionary<string, string> ObradiProveruStanja(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var storedUser))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var korisnikSaStanja))
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not found"
+                    ["message"] = "Korisnik nije pronađen"
                 };
             }
 
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = $"Current balance: {storedUser.Stanje:C}",
-                ["balance"] = storedUser.Stanje.ToString()
+                ["message"] = $"Trenutno stanje: {korisnikSaStanja.Stanje:C}",
+                ["balance"] = korisnikSaStanja.Stanje.ToString()
             };
         }
 
         private Dictionary<string, string> ObradiValidnostTransakcije(Transakcija transakcija)
         {
-            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var user))
+            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var korisnik))
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not found"
+                    ["message"] = "Korisnik nije pronađen"
                 };
             }
 
@@ -211,122 +211,124 @@ namespace Server
                     return new Dictionary<string, string>
                     {
                         ["success"] = "true",
-                        ["message"] = "Deposit validated"
+                        ["message"] = "Uplata validna"
                     };
                 case TipTransakcije.Isplata:
-                    if (transakcija.Kolicina > user.MaxSumaZaIsplatu)
+                    if (transakcija.Kolicina > korisnik.MaxSumaZaIsplatu)
                     {
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
-                            ["message"] = "Amount exceeds maximum withdrawal limit"
+                            ["message"] = "Iznos prelazi maksimalnu dozvoljenu isplatu"
                         };
                     }
 
-                    if (transakcija.Kolicina > user.Stanje)
+                    if (transakcija.Kolicina > korisnik.Stanje)
                     {
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
-                            ["message"] = "Insufficient funds"
+                            ["message"] = "Nedovoljno sredstava"
                         };
                     }
 
                     return new Dictionary<string, string>
                     {
                         ["success"] = "true",
-                        ["message"] = "Withdrawal validated"
+                        ["message"] = "Isplata validna"
                     };
                 default:
                     return new Dictionary<string, string>
                     {
                         ["success"] = "false",
-                        ["message"] = "Invalid transaction type"
+                        ["message"] = "Nepoznat tip transakcije"
                     };
             }
         }
 
         private Dictionary<string, string> ObradiUplatu(Transakcija transakcija)
         {
-            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var user))
+            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var korisnik))
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not found"
+                    ["message"] = "Korisnik nije pronađen"
                 };
             }
 
-            user.Stanje += transakcija.Kolicina;
+            korisnik.Stanje += transakcija.Kolicina;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Uplata: {transakcija.Kolicina:C} za {transakcija.KorisnickoIme}");
+            Console.WriteLine($"Uplata: {transakcija.Kolicina:C} za korisnika {transakcija.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = $"Deposit successful. New balance: {user.Stanje:C}",
-                ["balance"] = user.Stanje.ToString()
+                ["message"] = $"Uplata uspešna. Novo stanje: {korisnik.Stanje:C}",
+                ["balance"] = korisnik.Stanje.ToString()
             };
         }
 
         private Dictionary<string, string> ObradiIsplatu(Transakcija transakcija)
         {
-            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var user))
+            if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var korisnik))
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not found"
+                    ["message"] = "Korisnik nije pronađen"
                 };
             }
 
-            if (transakcija.Kolicina > user.MaxSumaZaIsplatu)
+            if (transakcija.Kolicina > korisnik.MaxSumaZaIsplatu)
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Amount exceeds maximum withdrawal limit"
+                    ["message"] = "Iznos prelazi maksimalnu dozvoljenu isplatu"
                 };
             }
 
-            if (transakcija.Kolicina > user.Stanje)
+            if (transakcija.Kolicina > korisnik.Stanje)
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Insufficient funds"
+                    ["message"] = "Nedovoljno sredstava"
                 };
             }
 
-            user.Stanje -= transakcija.Kolicina;
+            korisnik.Stanje -= transakcija.Kolicina;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Isplata: {transakcija.Kolicina:C} za {transakcija.KorisnickoIme}");
+            Console.WriteLine($"Isplata: {transakcija.Kolicina:C} za korisnika {transakcija.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = $"Withdrawal successful. New balance: {user.Stanje:C}",
-                ["balance"] = user.Stanje.ToString()
+                ["message"] = $"Isplata uspešna. Novo stanje: {korisnik.Stanje:C}",
+                ["balance"] = korisnik.Stanje.ToString()
             };
         }
 
-        private void PosaljiOdgovor(Socket socket, object response, EndPoint remoteEndPoint)
+        private void PosaljiOdgovor(Socket soket, object odgovor, EndPoint adresa)
         {
-            byte[] responseData = SerializeObject(response);
-            socket.SendTo(responseData, remoteEndPoint);
+            byte[] podaci = SerijalizujObjekat(odgovor);
+            soket.SendTo(podaci, adresa);
         }
 
-        private static byte[] SerializeObject(object obj)
+        private static byte[] SerijalizujObjekat(object objekat)
         {
             using (MemoryStream ms = new MemoryStream())
             {
                 BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(ms, obj);
+                bf.Serialize(ms, objekat);
                 return ms.ToArray();
             }
         }
 
-        private static object DeserializeObject(byte[] podaci)
+        private static object DeserijalizujObjekat(byte[] podaci)
         {
             using (MemoryStream ms = new MemoryStream(podaci))
             {
@@ -335,6 +337,7 @@ namespace Server
             }
         }
     }
+
 }
 
 
