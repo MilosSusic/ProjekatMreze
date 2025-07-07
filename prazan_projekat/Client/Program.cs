@@ -13,7 +13,7 @@ namespace Client
     public class Program
     {
         private const int PortFilijale = 5001;
-        private const string IpFilijale = "127.0.0.1";
+        private const string IpFilijale = "192.168.56.1";
 
         private Socket _soketFilijale;
         private bool _jePovezan;

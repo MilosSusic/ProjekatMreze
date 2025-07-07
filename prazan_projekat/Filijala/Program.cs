@@ -13,7 +13,7 @@ namespace Filijala
 {
     class Program
     {
-        private const string ServerIp = "127.0.0.1";
+        private const string ServerIp = "192.168.56.1";
         private const int ServerPort = 5000;
         private const int FilijalaPort = 5001;
 
@@ -347,36 +347,6 @@ namespace Filijala
             socket.Close();
             _soketiKlijenata.Remove(socket);
 
-            var endpointOtkacenogKlijenta = socket.RemoteEndPoint?.ToString();
-
-            string kljucKorisnikaZaBrisanje = null;
-
-            foreach (var korisnik in _povezaniKorisnici)
-            {
-                bool imaDrugihSoketa = false;
-
-                foreach (var aktivniSocket in _soketiKlijenata)
-                {
-                    if (aktivniSocket.RemoteEndPoint?.ToString() == endpointOtkacenogKlijenta)
-                    {
-                        imaDrugihSoketa = true;
-                        break;
-                    }
-                }
-
-                if (!imaDrugihSoketa)
-                {
-                    kljucKorisnikaZaBrisanje = korisnik.Key;
-                    break;
-                }
-            }
-
-            if (!string.IsNullOrEmpty(kljucKorisnikaZaBrisanje))
-            {
-                _povezaniKorisnici.Remove(kljucKorisnikaZaBrisanje);
-            }
-
-            Console.WriteLine("Klijent je odjavljen");
         }
 
         private void OčistiKonekcije()
@@ -389,7 +359,6 @@ namespace Filijala
                 }
                 catch
                 {
-                    // Ignoriši greške
                 }
             }
             _soketiKlijenata.Clear();
@@ -402,7 +371,6 @@ namespace Filijala
             }
             catch
             {
-                // Ignoriši greške
             }
         }
 
