@@ -9,26 +9,24 @@ using System.Text;
 
 namespace Server
 {
-     class Program
+    class Program
     {
         private const int Port = 5000;
-        private readonly Socket _serverSocket;
-        private readonly List<Socket> _soketiFilijala;
+        private readonly Socket _serverskiSoket;
         private readonly Dictionary<string, Korisnik> _korisnici;
         private readonly List<Transakcija> _transakcije;
-        private bool _radi;
+        private bool _aplikacijaPokrenuta;
 
         public Program()
         {
-            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _soketiFilijala = new List<Socket>();
+            _serverskiSoket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _korisnici = new Dictionary<string, Korisnik>();
             _transakcije = new List<Transakcija>();
         }
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Pokretanje serverskog dela bankarskog sistema...");
+            Console.WriteLine("Pokretanje servera...");
 
             Program server = new Program();
             server.Pokreni();
@@ -38,109 +36,60 @@ namespace Server
         {
             try
             {
-                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, Port));
-                _serverSocket.Listen(10);
-                Console.WriteLine($"Server pokrenut na portu {Port}");
+                _serverskiSoket.Bind(new IPEndPoint(IPAddress.Any, Port));
+                Console.WriteLine($"Server je pokrenut na portu {Port}");
 
-                _radi = true;
+                _aplikacijaPokrenuta = true;
 
-                while (_radi)
+                while (_aplikacijaPokrenuta)
                 {
-                    List<Socket> zaCitanje = new List<Socket> { _serverSocket };
-                    zaCitanje.AddRange(_soketiFilijala);
-
-                    Socket.Select(zaCitanje, null, null, 1000000); // timeout 1s
-
-                    foreach (Socket soket in zaCitanje)
+                    try
                     {
-                        if (soket == _serverSocket)
+                        byte[] bafer = new byte[2048];
+                        EndPoint udaljenaAdresa = new IPEndPoint(IPAddress.Any, 0);
+
+                        int primljeniBajtovi = _serverskiSoket.ReceiveFrom(bafer, ref udaljenaAdresa);
+
+                        if (primljeniBajtovi > 0)
                         {
-                            PrihvatiFilijalu();
+                            var zahtev = (Tuple<string, object>)DeserijalizujObjekat(bafer);
+                            var odgovor = ObradiZahtevFilijale(zahtev.Item1, zahtev.Item2);
+                            PosaljiOdgovor(_serverskiSoket, odgovor, udaljenaAdresa);
                         }
-                        else
-                        {
-                            ObradiZahtevFilijale(soket);
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Greška: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška servera: {ex.Message}");
+                Console.WriteLine($"Greška: {ex.Message}");
             }
             finally
             {
-                foreach (var soket in _soketiFilijala)
-                {
-                    if (soket.Connected)
-                        soket.Close();
-                }
-                _serverSocket.Close();
+                if (_serverskiSoket != null)
+                    _serverskiSoket.Close();
             }
         }
 
-        private void PrihvatiFilijalu()
-        {
-            Socket soketFilijale = _serverSocket.Accept();
-            _soketiFilijala.Add(soketFilijale);
-            Console.WriteLine($"Filijala povezana: {soketFilijale.RemoteEndPoint}");
-
-            var odgovor = new Dictionary<string, string>
-            {
-                ["success"] = "true",
-                ["maxBudget"] = "1000000",
-                ["maxConnections"] = "5"
-            };
-
-            PosaljiOdgovor(soketFilijale, odgovor);
-        }
-
-        private void ObradiZahtevFilijale(Socket soketFilijale)
-        {
-            try
-            {
-                byte[] bafer = new byte[2048];
-                int primljeno = soketFilijale.Receive(bafer);
-
-                if (primljeno == 0)
-                {
-                    ZatvoriSoketFilijale(soketFilijale);
-                    return;
-                }
-
-                var zahtev = (Tuple<string, object>)Deserijalizuj(bafer);
-                var odgovor = ObradiZahtev(zahtev.Item1, zahtev.Item2);
-                PosaljiOdgovor(soketFilijale, odgovor);
-            }
-            catch (SocketException)
-            {
-                ZatvoriSoketFilijale(soketFilijale);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Greška u obradi zahteva filijale: {ex.Message}");
-                PosaljiOdgovor(soketFilijale, new Dictionary<string, string>
-                {
-                    ["success"] = "false",
-                    ["message"] = "Interna greška servera"
-                });
-            }
-        }
-
-        private Dictionary<string, string> ObradiZahtev(string tip, object podaci)
+        private Dictionary<string, string> ObradiZahtevFilijale(string tip, object podaci)
         {
             try
             {
                 switch (tip)
                 {
+                    case "INIT":
+                        return ObradiInicijalizaciju();
                     case "REGISTER":
-                        return Registruj((Korisnik)podaci);
+                        return ObradiRegistraciju((Korisnik)podaci);
                     case "LOGIN":
-                        return Prijavi((Korisnik)podaci);
+                        return ObradiPrijavu((Korisnik)podaci);
                     case "BALANCE":
-                        return ProveriStanje((Korisnik)podaci);
+                        return ObradiStanje((Korisnik)podaci);
                     case "VALIDATE_TRANSACTION":
-                        return ValidirajTransakciju((Transakcija)podaci);
+                        return ObradiValidacijuTransakcije((Transakcija)podaci);
                     case "DEPOSIT":
                         return ObradiUplatu((Transakcija)podaci);
                     case "WITHDRAW":
@@ -163,7 +112,17 @@ namespace Server
             }
         }
 
-        private Dictionary<string, string> Registruj(Korisnik korisnik)
+        private Dictionary<string, string> ObradiInicijalizaciju()
+        {
+            return new Dictionary<string, string>
+            {
+                ["success"] = "true",
+                ["maxBudget"] = "1000000",
+                ["maxConnections"] = "5"
+            };
+        }
+
+        private Dictionary<string, string> ObradiRegistraciju(Korisnik korisnik)
         {
             if (_korisnici.ContainsKey(korisnik.KorisnickoIme))
             {
@@ -175,7 +134,8 @@ namespace Server
             }
 
             _korisnici.Add(korisnik.KorisnickoIme, korisnik);
-            Console.WriteLine($"Registrovan korisnik: {korisnik.KorisnickoIme}");
+            Console.WriteLine($"Korisnik registrovan: {korisnik.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -185,9 +145,9 @@ namespace Server
             };
         }
 
-        private Dictionary<string, string> Prijavi(Korisnik korisnik)
+        private Dictionary<string, string> ObradiPrijavu(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvani))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvaniKorisnik))
             {
                 return new Dictionary<string, string>
                 {
@@ -196,7 +156,7 @@ namespace Server
                 };
             }
 
-            if (sacuvani.Lozinka != korisnik.Lozinka)
+            if (sacuvaniKorisnik.Lozinka != korisnik.Lozinka)
             {
                 return new Dictionary<string, string>
                 {
@@ -206,6 +166,7 @@ namespace Server
             }
 
             Console.WriteLine($"Korisnik prijavljen: {korisnik.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -215,9 +176,9 @@ namespace Server
             };
         }
 
-        private Dictionary<string, string> ProveriStanje(Korisnik korisnik)
+        private Dictionary<string, string> ObradiStanje(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvani))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvaniKorisnik))
             {
                 return new Dictionary<string, string>
                 {
@@ -229,12 +190,12 @@ namespace Server
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = $"Trenutno stanje: {sacuvani.Stanje:C}",
-                ["balance"] = sacuvani.Stanje.ToString()
+                ["message"] = $"Trenutno stanje: {sacuvaniKorisnik.Stanje:C}",
+                ["balance"] = sacuvaniKorisnik.Stanje.ToString()
             };
         }
 
-        private Dictionary<string, string> ValidirajTransakciju(Transakcija transakcija)
+        private Dictionary<string, string> ObradiValidacijuTransakcije(Transakcija transakcija)
         {
             if (!_korisnici.TryGetValue(transakcija.KorisnickoIme, out var korisnik))
             {
@@ -255,17 +216,23 @@ namespace Server
                     };
                 case TipTransakcije.Isplata:
                     if (transakcija.Iznos > korisnik.MaksimalniIznosZaPodizanje)
+                    {
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
-                            ["message"] = "Iznos premašuje dozvoljeni maksimum za isplatu"
+                            ["message"] = "Prekoračen maksimalan limit za isplatu"
                         };
+                    }
+
                     if (transakcija.Iznos > korisnik.Stanje)
+                    {
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
                             ["message"] = "Nedovoljno sredstava"
                         };
+                    }
+
                     return new Dictionary<string, string>
                     {
                         ["success"] = "true",
@@ -294,7 +261,8 @@ namespace Server
             korisnik.Stanje += transakcija.Iznos;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Uplata obrađena: {transakcija.Iznos:C} za korisnika {transakcija.KorisnickoIme}");
+            Console.WriteLine($"Uplata: {transakcija.Iznos:C} za {transakcija.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -319,7 +287,7 @@ namespace Server
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Iznos premašuje maksimalnu dozvoljenu isplatu"
+                    ["message"] = "Prekoračen maksimalan limit za isplatu"
                 };
             }
 
@@ -335,7 +303,8 @@ namespace Server
             korisnik.Stanje -= transakcija.Iznos;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Isplata obrađena: {transakcija.Iznos:C} za korisnika {transakcija.KorisnickoIme}");
+            Console.WriteLine($"Isplata: {transakcija.Iznos:C} za {transakcija.KorisnickoIme}");
+
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -344,20 +313,13 @@ namespace Server
             };
         }
 
-        private void PosaljiOdgovor(Socket soket, object odgovor)
+        private void PosaljiOdgovor(Socket soket, object odgovor, EndPoint udaljeniKraj)
         {
-            byte[] podaci = Serijalizuj(odgovor);
-            soket.Send(podaci);
+            byte[] podaci = SerijalizujObjekat(odgovor);
+            soket.SendTo(podaci, udaljeniKraj);
         }
 
-        private void ZatvoriSoketFilijale(Socket soket)
-        {
-            soket.Close();
-            _soketiFilijala.Remove(soket);
-            Console.WriteLine("Filijala prekinula vezu");
-        }
-
-        private static byte[] Serijalizuj(object obj)
+        private static byte[] SerijalizujObjekat(object obj)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -367,7 +329,7 @@ namespace Server
             }
         }
 
-        private static object Deserijalizuj(byte[] podaci)
+        private static object DeserijalizujObjekat(byte[] podaci)
         {
             using (MemoryStream ms = new MemoryStream(podaci))
             {
@@ -375,10 +337,8 @@ namespace Server
                 return bf.Deserialize(ms);
             }
         }
-
-
-
     }
- }
+
+}
 
 
