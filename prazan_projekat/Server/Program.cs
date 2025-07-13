@@ -15,6 +15,7 @@ namespace Server
         private readonly Socket _serverSoket;
         private readonly Dictionary<string, Korisnik> _korisnici;
         private readonly List<Transakcija> _transakcije;
+        private readonly List<TransferTransakcija> _transferTransakcije;
         private bool _aplikacijaPokrenuta;
 
         public Program()
@@ -22,6 +23,7 @@ namespace Server
             _serverSoket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _korisnici = new Dictionary<string, Korisnik>();
             _transakcije = new List<Transakcija>();
+            _transferTransakcije = new List<TransferTransakcija>();
         }
 
         static void Main(string[] args)
@@ -37,7 +39,7 @@ namespace Server
             try
             {
                 _serverSoket.Bind(new IPEndPoint(IPAddress.Any, Port));
-                Console.WriteLine($"Server pokrenut na portu {Port}");
+                Console.WriteLine($"Server je pokrenut na portu {Port}");
 
                 _aplikacijaPokrenuta = true;
 
@@ -46,15 +48,15 @@ namespace Server
                     try
                     {
                         byte[] bafer = new byte[2048];
-                        EndPoint krajnjaAdresa = new IPEndPoint(IPAddress.Any, 0);
+                        EndPoint krajnjaTacka = new IPEndPoint(IPAddress.Any, 0);
 
-                        int brojBajtova = _serverSoket.ReceiveFrom(bafer, ref krajnjaAdresa);
+                        int primljeniBajtovi = _serverSoket.ReceiveFrom(bafer, ref krajnjaTacka);
 
-                        if (brojBajtova > 0)
+                        if (primljeniBajtovi > 0)
                         {
-                            var zahtev = (Tuple<string, object>)DeserijalizujObjekat(bafer);
-                            var odgovor = ObradiZahtevFilijale(zahtev.Item1, zahtev.Item2);
-                            PosaljiOdgovor(_serverSoket, odgovor, krajnjaAdresa);
+                            var zahtev = (Tuple<string, object>)Deserijalizuj(bafer);
+                            var odgovor = ObradiZahtev(zahtev.Item1, zahtev.Item2);
+                            PosaljiOdgovor(_serverSoket, odgovor, krajnjaTacka);
                         }
                     }
                     catch (Exception ex)
@@ -65,7 +67,7 @@ namespace Server
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška: {ex.Message}");
+                Console.WriteLine($"Greška prilikom pokretanja: {ex.Message}");
             }
             finally
             {
@@ -73,7 +75,7 @@ namespace Server
             }
         }
 
-        private Dictionary<string, string> ObradiZahtevFilijale(string tip, object podaci)
+        private Dictionary<string, string> ObradiZahtev(string tip, object podaci)
         {
             try
             {
@@ -86,13 +88,17 @@ namespace Server
                     case "LOGIN":
                         return ObradiPrijavu((Korisnik)podaci);
                     case "BALANCE":
-                        return ObradiProveruStanja((Korisnik)podaci);
+                        return ObradiStanje((Korisnik)podaci);
                     case "VALIDATE_TRANSACTION":
                         return ObradiValidnostTransakcije((Transakcija)podaci);
                     case "DEPOSIT":
                         return ObradiUplatu((Transakcija)podaci);
                     case "WITHDRAW":
                         return ObradiIsplatu((Transakcija)podaci);
+                    case "TRANSFER":
+                        return ObradiTransfer((TransferTransakcija)podaci);
+                    case "VALIDATE_TRANSFER":
+                        return ObradiValidnostTransfera((TransferTransakcija)podaci);
                     default:
                         return new Dictionary<string, string>
                         {
@@ -133,8 +139,7 @@ namespace Server
             }
 
             _korisnici.Add(korisnik.KorisnickoIme, korisnik);
-            Console.WriteLine($"Korisnik registrovan: {korisnik.KorisnickoIme}");
-
+            Console.WriteLine($"Registrovan korisnik: {korisnik.KorisnickoIme}");
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -146,7 +151,7 @@ namespace Server
 
         private Dictionary<string, string> ObradiPrijavu(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvaniKorisnik))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var sacuvani))
             {
                 return new Dictionary<string, string>
                 {
@@ -155,7 +160,7 @@ namespace Server
                 };
             }
 
-            if (sacuvaniKorisnik.Sifra != korisnik.Sifra)
+            if (sacuvani.Sifra != korisnik.Sifra)
             {
                 return new Dictionary<string, string>
                 {
@@ -165,7 +170,6 @@ namespace Server
             }
 
             Console.WriteLine($"Korisnik prijavljen: {korisnik.KorisnickoIme}");
-
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -175,9 +179,9 @@ namespace Server
             };
         }
 
-        private Dictionary<string, string> ObradiProveruStanja(Korisnik korisnik)
+        private Dictionary<string, string> ObradiStanje(Korisnik korisnik)
         {
-            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var korisnikSaStanja))
+            if (!_korisnici.TryGetValue(korisnik.KorisnickoIme, out var korisnikInfo))
             {
                 return new Dictionary<string, string>
                 {
@@ -189,8 +193,8 @@ namespace Server
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = $"Trenutno stanje: {korisnikSaStanja.Stanje:C}",
-                ["balance"] = korisnikSaStanja.Stanje.ToString()
+                ["message"] = $"Trenutno stanje: {korisnikInfo.Stanje:C}",
+                ["balance"] = korisnikInfo.Stanje.ToString()
             };
         }
 
@@ -219,7 +223,7 @@ namespace Server
                         return new Dictionary<string, string>
                         {
                             ["success"] = "false",
-                            ["message"] = "Iznos prelazi maksimalnu dozvoljenu isplatu"
+                            ["message"] = "Iznos premašuje maksimalnu dozvoljenu isplatu"
                         };
                     }
 
@@ -260,8 +264,7 @@ namespace Server
             korisnik.Stanje += transakcija.Kolicina;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Uplata: {transakcija.Kolicina:C} za korisnika {transakcija.KorisnickoIme}");
-
+            Console.WriteLine($"Uplata: {transakcija.Kolicina:C} za {transakcija.KorisnickoIme}");
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -286,7 +289,7 @@ namespace Server
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Iznos prelazi maksimalnu dozvoljenu isplatu"
+                    ["message"] = "Prekoračenje limita za isplatu"
                 };
             }
 
@@ -302,8 +305,7 @@ namespace Server
             korisnik.Stanje -= transakcija.Kolicina;
             _transakcije.Add(transakcija);
 
-            Console.WriteLine($"Isplata: {transakcija.Kolicina:C} za korisnika {transakcija.KorisnickoIme}");
-
+            Console.WriteLine($"Isplata: {transakcija.Kolicina:C} za {transakcija.KorisnickoIme}");
             return new Dictionary<string, string>
             {
                 ["success"] = "true",
@@ -312,13 +314,91 @@ namespace Server
             };
         }
 
-        private void PosaljiOdgovor(Socket soket, object odgovor, EndPoint adresa)
+        private Dictionary<string, string> ObradiValidnostTransfera(TransferTransakcija transfer)
         {
-            byte[] podaci = SerijalizujObjekat(odgovor);
-            soket.SendTo(podaci, adresa);
+            if (!_korisnici.TryGetValue(transfer.PosiljalacKorisnickoIme, out var posiljalac))
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Pošiljalac nije pronađen"
+                };
+            }
+
+            if (!_korisnici.TryGetValue(transfer.PrimalacKorisnickoIme, out var primalac))
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Primalac nije pronađen"
+                };
+            }
+
+            if (transfer.Kolicina > posiljalac.Stanje)
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Nedovoljno sredstava na računu"
+                };
+            }
+
+            if (transfer.Kolicina > posiljalac.MaxSumaZaIsplatu)
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Prekoračen maksimalni iznos za isplatu"
+                };
+            }
+
+            if (transfer.PosiljalacKorisnickoIme == transfer.PrimalacKorisnickoIme)
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Ne možete poslati novac samom sebi"
+                };
+            }
+
+            return new Dictionary<string, string>
+            {
+                ["success"] = "true",
+                ["message"] = "Transfer validan"
+            };
         }
 
-        private static byte[] SerijalizujObjekat(object objekat)
+        private Dictionary<string, string> ObradiTransfer(TransferTransakcija transfer)
+        {
+            var rezultat = ObradiValidnostTransfera(transfer);
+            if (rezultat["success"] != "true")
+                return rezultat;
+
+            var posiljalac = _korisnici[transfer.PosiljalacKorisnickoIme];
+            var primalac = _korisnici[transfer.PrimalacKorisnickoIme];
+
+            posiljalac.Stanje -= transfer.Kolicina;
+            primalac.Stanje += transfer.Kolicina;
+
+            _transferTransakcije.Add(transfer);
+
+            Console.WriteLine($"Transfer: {transfer.Kolicina:C} od {transfer.PosiljalacKorisnickoIme} ka {transfer.PrimalacKorisnickoIme}");
+
+            return new Dictionary<string, string>
+            {
+                ["success"] = "true",
+                ["message"] = $"Transfer uspešan. Novo stanje: {posiljalac.Stanje:C}",
+                ["balance"] = posiljalac.Stanje.ToString()
+            };
+        }
+
+        private void PosaljiOdgovor(Socket soket, object odgovor, EndPoint krajnjaTacka)
+        {
+            byte[] podaci = Serijalizuj(odgovor);
+            soket.SendTo(podaci, krajnjaTacka);
+        }
+
+        private static byte[] Serijalizuj(object objekat)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -328,7 +408,7 @@ namespace Server
             }
         }
 
-        private static object DeserijalizujObjekat(byte[] podaci)
+        private static object Deserijalizuj(byte[] podaci)
         {
             using (MemoryStream ms = new MemoryStream(podaci))
             {
@@ -339,5 +419,8 @@ namespace Server
     }
 
 }
+
+
+
 
 

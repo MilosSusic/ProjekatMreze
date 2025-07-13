@@ -10,19 +10,43 @@ using System.Text;
 
 namespace Client
 {
-    public class Program
+    class Program
     {
-        private const int PortFilijale = 5001;
-        private const string IpFilijale = "192.168.56.1";
-
-        private Socket _soketFilijale;
+        private const string IpFilijale = "127.0.0.1";
+        private Socket _filijalaSocket;
         private bool _jePovezan;
         private Korisnik _trenutniKorisnik;
+        private int _portFilijale;
 
         public Program()
         {
-            _soketFilijale = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _filijalaSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _trenutniKorisnik = null;
+        }
+
+        private void UnesiPortFilijale()
+        {
+            while (true)
+            {
+                Console.Write("Unesite port filijale (podrazumevano 5001): ");
+                var unos = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(unos))
+                {
+                    _portFilijale = 5001;
+                    Console.WriteLine($"Koristi se podrazumevani port: {_portFilijale}");
+                    break;
+                }
+
+                if (int.TryParse(unos, out int port) && port > 0 && port <= 65535)
+                {
+                    _portFilijale = port;
+                    Console.WriteLine($"Povezivanje na port: {_portFilijale}");
+                    break;
+                }
+
+                Console.WriteLine("Pogrešan unos. Port mora biti broj između 1 i 65535.");
+            }
         }
 
         static void Main(string[] args)
@@ -30,135 +54,140 @@ namespace Client
             Console.WriteLine("Pokretanje klijenta...");
 
             Program klijent = new Program();
-            klijent.Pokreni();
+            klijent.Start();
         }
 
-        public void Pokreni()
+        public void Start()
         {
             try
             {
+                UnesiPortFilijale();
                 PoveziSeNaFilijalu();
 
                 while (true)
                 {
                     if (!_jePovezan)
                     {
-                        Console.WriteLine("Niste povezani sa filijalom. Pritisnite Enter za ponovno povezivanje ili 'exit' za izlaz.");
+                        Console.WriteLine("Niste povezani sa granom. Pritisnite Enter da biste pokušali ponovo da se povežete ili „exit“ da biste izašli.");
                         if (Console.ReadLine()?.ToLower() == "exit")
                             break;
-
                         PoveziSeNaFilijalu();
                         continue;
                     }
 
-                    PrikaziMeni();
+                    ShowMenu();
                     string izbor = Console.ReadLine();
 
                     switch (izbor)
                     {
                         case "1":
-                            RegistrujSe();
+                            Registracija();
                             break;
                         case "2":
-                            PrijaviSe();
+                            Login();
                             break;
                         case "3":
                             if (_trenutniKorisnik != null)
-                                ProveriStanje();
+                                ProveraStanja();
                             else
-                                Console.WriteLine("Prvo se morate prijaviti.");
+                                Console.WriteLine("Molimo vas da se prvo prijavite.");
                             break;
                         case "4":
                             if (_trenutniKorisnik != null)
-                                IzvrsiUplatu();
+                                Uplata();
                             else
-                                Console.WriteLine("Prvo se morate prijaviti.");
+                                Console.WriteLine("Molimo vas da se prvo prijavite.");
                             break;
                         case "5":
                             if (_trenutniKorisnik != null)
-                                IzvrsiIsplatu();
+                                Isplata();
                             else
-                                Console.WriteLine("Prvo se morate prijaviti.");
+                                Console.WriteLine("Molimo vas da se prvo prijavite.");
                             break;
                         case "6":
+                            if (_trenutniKorisnik != null)
+                                Transfer();
+                            else
+                                Console.WriteLine("Molimo vas da se prvo prijavite.");
+                            break;
+                        case "7":
                             _jePovezan = false;
                             break;
                         default:
-                            Console.WriteLine("Nepoznata opcija.");
+                            Console.WriteLine("Invalid choice.");
                             break;
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
             finally
             {
-                if (_soketFilijale.Connected)
-                    _soketFilijale.Close();
+                if (_filijalaSocket.Connected)
+                    _filijalaSocket.Close();
             }
         }
 
-        private void PrikaziMeni()
+        private void ShowMenu()
         {
-            Console.WriteLine("\n=== Glavni meni ===");
+            Console.WriteLine("\n=== Klient ===");
             Console.WriteLine("1. Registracija");
-            Console.WriteLine("2. Prijava");
-            Console.WriteLine("3. Provera stanja");
+            Console.WriteLine("2. Login");
+            Console.WriteLine("3. Provera Stanja");
             Console.WriteLine("4. Uplata");
             Console.WriteLine("5. Isplata");
-            Console.WriteLine("6. Prekini vezu");
-            Console.Write("Izbor: ");
+            Console.WriteLine("6. Transfer");
+            Console.WriteLine("7. Izlaz");
+            Console.Write("Izaberi: ");
         }
 
         private void PoveziSeNaFilijalu()
         {
             try
             {
-                if (_soketFilijale.Connected)
-                    _soketFilijale.Close();
+                if (_filijalaSocket.Connected)
+                    _filijalaSocket.Close();
 
-                _soketFilijale = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                _soketFilijale.Connect(new IPEndPoint(IPAddress.Parse(IpFilijale), PortFilijale));
+                _filijalaSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _filijalaSocket.Connect(new IPEndPoint(IPAddress.Parse(IpFilijale), _portFilijale));
 
-                byte[] bafer = new byte[2048];
-                _soketFilijale.Receive(bafer);
-
-                var odgovor = (Dictionary<string, string>)DeserijalizujObjekat(bafer);
+                byte[] buffer = new byte[2048];
+                _filijalaSocket.Receive(buffer);
+                var odgovor = (Dictionary<string, string>)DeserialazujObjekat(buffer);
 
                 if (odgovor["success"] != "true")
                 {
-                    Console.WriteLine($"Povezivanje odbijeno: {odgovor["message"]}");
+                    Console.WriteLine($"Filijala odbila: {odgovor["message"]}");
                     _jePovezan = false;
                     return;
                 }
 
                 _jePovezan = true;
-                Console.WriteLine("Uspešno povezano na filijalu.");
+                Console.WriteLine("Povezan na filijalu uspesno.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška pri povezivanju: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
                 _jePovezan = false;
             }
         }
 
-        private void RegistrujSe()
+        private void Registracija()
         {
-            Console.Write("Korisničko ime: ");
+            Console.Write("Korisnicko ime: ");
             var korisnickoIme = Console.ReadLine();
-            Console.Write("Šifra: ");
+            Console.Write("Sifra: ");
             var sifra = Console.ReadLine();
             Console.Write("Ime: ");
             var ime = Console.ReadLine();
             Console.Write("Prezime: ");
             var prezime = Console.ReadLine();
             Console.Write("Maksimalna suma za isplatu: ");
-
-            if (!decimal.TryParse(Console.ReadLine(), out decimal maxIsplata))
+            if (!decimal.TryParse(Console.ReadLine(), out decimal maxSumaZaIsplatu))
             {
-                Console.WriteLine("Neispravan unos sume.");
+                Console.WriteLine("Pogresna suma.");
                 return;
             }
 
@@ -168,23 +197,23 @@ namespace Client
                 Sifra = sifra,
                 Ime = ime,
                 Prezime = prezime,
-                MaxSumaZaIsplatu = maxIsplata
+                MaxSumaZaIsplatu = maxSumaZaIsplatu
             };
 
             PosaljiZahtev("REGISTER", korisnik);
         }
 
-        private void PrijaviSe()
+        private void Login()
         {
-            Console.Write("Korisničko ime: ");
-            var korisnickoIme = Console.ReadLine();
-            Console.Write("Šifra: ");
-            var sifra = Console.ReadLine();
+            Console.Write("Korisnicko ime: ");
+            var username = Console.ReadLine();
+            Console.Write("Sifra: ");
+            var password = Console.ReadLine();
 
             var korisnik = new Korisnik
             {
-                KorisnickoIme = korisnickoIme,
-                Sifra = sifra
+                KorisnickoIme = username,
+                Sifra = password
             };
 
             var odgovor = PosaljiZahtev("LOGIN", korisnik);
@@ -194,55 +223,79 @@ namespace Client
             }
         }
 
-        private void ProveriStanje()
+        private void ProveraStanja()
         {
             PosaljiZahtev("BALANCE", _trenutniKorisnik);
         }
 
-        private void IzvrsiUplatu()
+        private void Uplata()
         {
-            Console.Write("Unesite iznos za uplatu: ");
+            Console.Write("Suma za uplatu: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal kolicina))
             {
-                Console.WriteLine("Neispravan iznos.");
+                Console.WriteLine("Pogresna suma.");
                 return;
             }
 
             var transakcija = new Transakcija(_trenutniKorisnik.KorisnickoIme, kolicina, TipTransakcije.Uplata);
+
             PosaljiZahtev("DEPOSIT", transakcija);
         }
 
-        private void IzvrsiIsplatu()
+        private void Isplata()
         {
-            Console.Write("Unesite iznos za isplatu: ");
+            Console.Write("Suma za isplatu: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal kolicina))
             {
-                Console.WriteLine("Neispravan iznos.");
+                Console.WriteLine("Pogresna suma.");
                 return;
             }
 
             var transakcija = new Transakcija(_trenutniKorisnik.KorisnickoIme, kolicina, TipTransakcije.Isplata);
+
             PosaljiZahtev("WITHDRAW", transakcija);
         }
 
-        private Dictionary<string, string> PosaljiZahtev(string tip, object podaci)
+        private void Transfer()
+        {
+            Console.Write("Korisničko ime primaoca: ");
+            var primalacKorisnickoIme = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(primalacKorisnickoIme))
+            {
+                Console.WriteLine("Korisničko ime primaoca ne može biti prazno.");
+                return;
+            }
+
+            Console.Write("Suma za transfer: ");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal kolicina))
+            {
+                Console.WriteLine("Pogrešna suma.");
+                return;
+            }
+
+            var transfer = new TransferTransakcija(_trenutniKorisnik.KorisnickoIme, primalacKorisnickoIme, kolicina);
+
+            PosaljiZahtev("TRANSFER", transfer);
+        }
+
+        private Dictionary<string, string> PosaljiZahtev(string type, object data)
         {
             try
             {
-                var zahtev = Tuple.Create(tip, podaci);
-                byte[] podaciZahteva = SerijalizujObjekat(zahtev);
-                _soketFilijale.Send(podaciZahteva);
+                var zahtev = Tuple.Create(type, data);
+                byte[] requestData = SerialazujObjekat(zahtev);
+                _filijalaSocket.Send(requestData);
 
-                byte[] bafer = new byte[2048];
-                _soketFilijale.Receive(bafer);
-                var odgovor = (Dictionary<string, string>)DeserijalizujObjekat(bafer);
-
+                byte[] buffer = new byte[2048];
+                _filijalaSocket.Receive(buffer);
+                var odgovor = (Dictionary<string, string>)DeserialazujObjekat(buffer);
                 Console.WriteLine(odgovor["message"]);
                 return odgovor;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška prilikom slanja zahteva: {ex.Message}");
+                Console.WriteLine($"Error pri slanju zahteva: {ex.Message}");
                 _jePovezan = false;
                 return new Dictionary<string, string>
                 {
@@ -252,7 +305,7 @@ namespace Client
             }
         }
 
-        private static byte[] SerijalizujObjekat(object obj)
+        private static byte[] SerialazujObjekat(object obj)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -262,15 +315,16 @@ namespace Client
             }
         }
 
-        private static object DeserijalizujObjekat(byte[] podaci)
+        private static object DeserialazujObjekat(byte[] data)
         {
-            using (MemoryStream ms = new MemoryStream(podaci))
+            using (MemoryStream ms = new MemoryStream(data))
             {
                 BinaryFormatter bf = new BinaryFormatter();
                 return bf.Deserialize(ms);
             }
         }
     }
+
 }
 
 

@@ -13,28 +13,53 @@ namespace Filijala
 {
     class Program
     {
-        private const string ServerIp = "192.168.56.1";
+        private const string ServerIp = "127.0.0.1";
         private const int ServerPort = 5000;
-        private const int FilijalaPort = 5001;
+        private const int DefaultFilijalaPort = 5001;
 
-        private readonly Socket _socketServera;
-        private readonly Socket _slušalacKlijenata;
-        private readonly List<Socket> _soketiKlijenata;
-        private decimal _maksimalniBudzet;
-        private int _maksimalanBrojKonekcija;
+        private readonly Socket _serverSocket;
+        private readonly Socket _klijentListener;
+        private readonly List<Socket> _klijentSockets;
+        private decimal _maxBudzet;
+        private int _maxKonekcija;
         private bool _radi;
         private readonly Dictionary<string, Korisnik> _povezaniKorisnici;
         private readonly List<Transakcija> _transakcije;
-        private EndPoint _krajnaAdresaServera;
+        private readonly List<TransferTransakcija> _transferTransakcije;
+        private EndPoint _serverEndPoint;
+        private int _filijalaPort;
 
         public Program()
         {
-            _socketServera = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _slušalacKlijenata = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _soketiKlijenata = new List<Socket>();
+            _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _klijentListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _klijentSockets = new List<Socket>();
             _povezaniKorisnici = new Dictionary<string, Korisnik>();
             _transakcije = new List<Transakcija>();
-            _krajnaAdresaServera = new IPEndPoint(IPAddress.Parse(ServerIp), ServerPort);
+            _transferTransakcije = new List<TransferTransakcija>();
+            _serverEndPoint = new IPEndPoint(IPAddress.Parse(ServerIp), ServerPort);
+        }
+
+        private int PronadjiSlobodniPort(int startPort)
+        {
+            for (var port = startPort; port < startPort + 100; port++)
+            {
+                try
+                {
+                    using (var testSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+                    {
+                        testSocket.Bind(new IPEndPoint(IPAddress.Any, port));
+                        testSocket.Close();
+                        return port;
+                    }
+                }
+                catch (SocketException)
+                {
+                    // Port zauzet, predji na sledeci
+                }
+            }
+
+            throw new InvalidOperationException($"No available ports found starting from {startPort}");
         }
 
         static void Main(string[] args)
@@ -42,166 +67,169 @@ namespace Filijala
             Console.WriteLine("Pokretanje filijale...");
 
             Program filijala = new Program();
-            filijala.Pokreni();
+            filijala.Start();
         }
 
-        public void Pokreni()
+        public void Start()
         {
             try
             {
-                // Inicijalizacija i preuzimanje parametara od servera
-                if (!InicijalizujSaServerom())
+                if (!InicijalizacijaSaServerom())
                 {
                     Console.WriteLine("Inicijalizacija sa serverom nije uspela.");
                     return;
                 }
 
-                // Pokreni slušanje dolaznih konekcija klijenata
-                _slušalacKlijenata.Bind(new IPEndPoint(IPAddress.Any, FilijalaPort));
-                _slušalacKlijenata.Listen(_maksimalanBrojKonekcija);
-                Console.WriteLine($"Filijala pokrenuta na portu {FilijalaPort}, prihvata do {_maksimalanBrojKonekcija} klijenata");
+                _filijalaPort = PronadjiSlobodniPort(DefaultFilijalaPort);
+                _klijentListener.Bind(new IPEndPoint(IPAddress.Any, _filijalaPort));
+                _klijentListener.Listen(_maxKonekcija);
+                Console.WriteLine($"Filijala je pokrenuta na portu {_filijalaPort}, prihvatajuci do {_maxKonekcija} klijenata");
 
                 _radi = true;
 
                 while (_radi)
                 {
-                    var soketiZaCitanje = new List<Socket> { _slušalacKlijenata };
-                    soketiZaCitanje.AddRange(_soketiKlijenata);
+                    var soketiSaPorukama = new List<Socket> { _klijentListener };
+                    soketiSaPorukama.AddRange(_klijentSockets);
 
-                    Socket.Select(soketiZaCitanje, null, null, 1000000); // timeout 1 sekunda
+                    Socket.Select(soketiSaPorukama, null, null, 1000000); // 1 second timeout
 
-                    foreach (var socket in soketiZaCitanje)
+                    foreach (var socket in soketiSaPorukama)
                     {
-                        if (socket == _slušalacKlijenata)
+                        if (socket == _klijentListener)
                         {
-                            PrihvatiNovogKlijenta();
+                            PrihvatiKlijenta();
                         }
                         else
                         {
-                            ObradiKlijentskuPoruku(socket);
+                            ObradiKlijenta(socket);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
             finally
             {
-                OčistiKonekcije();
+                PocistiKonekcije();
             }
         }
 
-        private bool InicijalizujSaServerom()
+        private bool InicijalizacijaSaServerom()
         {
             try
             {
-                // Pošalji zahtev za inicijalizaciju
-                var zahtevInit = Tuple.Create("INIT", (object)null);
-                byte[] podaciZahteva = SerializujObjekat(zahtevInit);
-                _socketServera.SendTo(podaciZahteva, _krajnaAdresaServera);
+                // Posalji zahtev za inicijalizaciju
+                var initRequest = Tuple.Create("INIT", (object)null);
+                byte[] requestData = SerialazujObjekat(initRequest);
+                _serverSocket.SendTo(requestData, _serverEndPoint);
 
-                // Prihvati odgovor servera
+                // Prihvati odgovor
                 byte[] buffer = new byte[2048];
-                EndPoint privremeniEP = new IPEndPoint(IPAddress.Any, 0);
-                _socketServera.ReceiveFrom(buffer, ref privremeniEP);
+                EndPoint tempEP = new IPEndPoint(IPAddress.Any, 0);
+                _serverSocket.ReceiveFrom(buffer, ref tempEP);
 
-                var odgovor = (Dictionary<string, string>)DeserializujObjekat(buffer);
+                var odgovor = (Dictionary<string, string>)DeserialazujObjekat(buffer);
 
                 if (odgovor["success"] == "true")
                 {
-                    _maksimalniBudzet = decimal.Parse(odgovor["maxBudget"]);
-                    _maksimalanBrojKonekcija = int.Parse(odgovor["maxConnections"]);
-                    Console.WriteLine($"Inicijalizovano: maksimalni budžet = {_maksimalniBudzet}, maksimalni broj konekcija = {_maksimalanBrojKonekcija}");
+                    _maxBudzet = decimal.Parse(odgovor["maxBudget"]);
+                    _maxKonekcija = int.Parse(odgovor["maxConnections"]);
+                    Console.WriteLine($"Inicijalizovano sa maksimalnim budžetom: {_maxBudzet}, maksimalnim brojem konekcija: {_maxKonekcija}");
                     return true;
                 }
                 return false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
                 return false;
             }
         }
 
-        private void PrihvatiNovogKlijenta()
+        private void PrihvatiKlijenta()
         {
-            if (_soketiKlijenata.Count >= _maksimalanBrojKonekcija)
+            if (_klijentSockets.Count >= _maxKonekcija)
             {
-                Console.WriteLine("Dostignut maksimalan broj konekcija, odbijam novog klijenta");
-                Socket privremeniSocket = _slušalacKlijenata.Accept();
-                PosaljiOdgovor(privremeniSocket, new Dictionary<string, string>
+                Console.WriteLine("Dostignut je maksimalan broj konekcija, odbijanje novog klijenta");
+                Socket tempSocket = _klijentListener.Accept();
+                SendResponse(tempSocket, new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Filijala je dostigla maksimalni kapacitet"
+                    ["message"] = "Branch has reached maximum capacity"
                 });
-                privremeniSocket.Close();
+                tempSocket.Close();
                 return;
             }
 
-            Socket noviKlijent = _slušalacKlijenata.Accept();
-            _soketiKlijenata.Add(noviKlijent);
-            Console.WriteLine($"Klijent povezan: {noviKlijent.RemoteEndPoint}");
+            Socket klijentSocket = _klijentListener.Accept();
+            _klijentSockets.Add(klijentSocket);
+            Console.WriteLine($"Klijent povezan: {klijentSocket.RemoteEndPoint}");
 
-            PosaljiOdgovor(noviKlijent, new Dictionary<string, string>
+            SendResponse(klijentSocket, new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = "Uspešno povezan na filijalu"
+                ["message"] = "Connected to branch successfully"
             });
         }
 
-        private void ObradiKlijentskuPoruku(Socket klijentSocket)
+        private void ObradiKlijenta(Socket klijentSocket)
         {
             try
             {
                 byte[] buffer = new byte[2048];
-                int procitano = klijentSocket.Receive(buffer);
+                int primljeno = klijentSocket.Receive(buffer);
 
-                if (procitano == 0)
+                if (primljeno == 0)
                 {
-                    ZatvoriKlijentskiSocket(klijentSocket);
+                    ZatvoriKlijentskiSoket(klijentSocket);
                     return;
                 }
 
-                var zahtev = (Tuple<string, object>)DeserializujObjekat(buffer);
-                Dictionary<string, string> odgovor = ObradiZahtevKlijenta(zahtev.Item1, zahtev.Item2, klijentSocket);
-                PosaljiOdgovor(klijentSocket, odgovor);
+                var zahtev = (Tuple<string, object>)DeserialazujObjekat(buffer);
+                Dictionary<string, string> odgovor = ProcessClientRequest(zahtev.Item1, zahtev.Item2, klijentSocket);
+                SendResponse(klijentSocket, odgovor);
             }
             catch (SocketException)
             {
-                ZatvoriKlijentskiSocket(klijentSocket);
+                ZatvoriKlijentskiSoket(klijentSocket);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška pri obradi klijenta: {ex.Message}");
-                PosaljiOdgovor(klijentSocket, new Dictionary<string, string>
+                Console.WriteLine($"Error handling client: {ex.Message}");
+                SendResponse(klijentSocket, new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Došlo je do interne greške"
+                    ["message"] = "Internal error occurred"
                 });
             }
         }
 
-        private Dictionary<string, string> ObradiZahtevKlijenta(string tipZahteva, object podaci, Socket klijentSocket)
+        private Dictionary<string, string> ProcessClientRequest(string tip, object podaci, Socket klijentSocket)
         {
-            switch (tipZahteva)
+            switch (tip)
             {
                 case "REGISTER":
                     return ObradiRegistraciju((Korisnik)podaci);
                 case "LOGIN":
-                    return ObradiPrijavu((Korisnik)podaci, klijentSocket);
+                    return ObradiLogin((Korisnik)podaci, klijentSocket);
                 case "BALANCE":
                     return ObradiProveruStanja((Korisnik)podaci);
                 case "DEPOSIT":
                     return ObradiUplatu((Transakcija)podaci);
                 case "WITHDRAW":
                     return ObradiIsplatu((Transakcija)podaci);
+                case "TRANSFER":
+                    return ObradiTransfer((TransferTransakcija)podaci);
+                case "VALIDATE_TRANSFER":
+                    return ObradiValidnostTransfera((TransferTransakcija)podaci);
                 default:
                     return new Dictionary<string, string>
                     {
                         ["success"] = "false",
-                        ["message"] = "Nevažeći tip zahteva"
+                        ["message"] = "Invalid request type"
                     };
             }
         }
@@ -211,7 +239,7 @@ namespace Filijala
             return PosaljiZahtev("REGISTER", korisnik);
         }
 
-        private Dictionary<string, string> ObradiPrijavu(Korisnik korisnik, Socket klijentSocket)
+        private Dictionary<string, string> ObradiLogin(Korisnik korisnik, Socket clientSocket)
         {
             var odgovor = PosaljiZahtev("LOGIN", korisnik);
 
@@ -230,7 +258,7 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Korisnik nije prijavljen"
+                    ["message"] = "User not logged in"
                 };
             }
 
@@ -244,22 +272,22 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Korisnik nije prijavljen"
+                    ["message"] = "User not logged in"
                 };
             }
 
-            var validacija = ValidirajTransakciju(transakcija);
+            var validnostOdgovor = ValidirajTransakciju(transakcija);
 
-            if (validacija["success"] != "true")
+            if (validnostOdgovor["success"] != "true")
             {
-                return validacija;
+                return validnostOdgovor;
             }
 
             var odgovor = PosaljiZahtev("DEPOSIT", transakcija);
 
             if (odgovor["success"] == "true")
             {
-                _maksimalniBudzet += transakcija.Kolicina;
+                _maxBudzet += transakcija.Kolicina;
                 _transakcije.Add(transakcija);
             }
 
@@ -273,35 +301,35 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Korisnik nije prijavljen"
+                    ["message"] = "User not logged in"
                 };
             }
 
-            if (transakcija.Kolicina > _maksimalniBudzet)
+            if (transakcija.Kolicina > _maxBudzet)
             {
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Nema dovoljno sredstava u filijali"
+                    ["message"] = "Insufficient branch budget"
                 };
             }
 
-            var validacija = ValidirajTransakciju(transakcija);
+            var validnostOdgovor = ValidirajTransakciju(transakcija);
 
-            if (validacija["success"] != "true")
+            if (validnostOdgovor["success"] != "true")
             {
-                return validacija;
+                return validnostOdgovor;
             }
 
-            var odgovor = PosaljiZahtev("WITHDRAW", transakcija);
+            var response = PosaljiZahtev("WITHDRAW", transakcija);
 
-            if (odgovor["success"] == "true")
+            if (response["success"] == "true")
             {
-                _maksimalniBudzet -= transakcija.Kolicina;
+                _maxBudzet -= transakcija.Kolicina;
                 _transakcije.Add(transakcija);
             }
 
-            return odgovor;
+            return response;
         }
 
         private Dictionary<string, string> ValidirajTransakciju(Transakcija transakcija)
@@ -309,9 +337,42 @@ namespace Filijala
             return PosaljiZahtev("VALIDATE_TRANSACTION", transakcija);
         }
 
-        private void PosaljiOdgovor(Socket socket, Dictionary<string, string> odgovor)
+        private Dictionary<string, string> ObradiValidnostTransfera(TransferTransakcija transfer)
         {
-            byte[] podaciOdgovora = SerializujObjekat(odgovor);
+            return PosaljiZahtev("VALIDATE_TRANSFER", transfer);
+        }
+
+        private Dictionary<string, string> ObradiTransfer(TransferTransakcija transfer)
+        {
+            if (!_povezaniKorisnici.ContainsKey(transfer.PosiljalacKorisnickoIme))
+            {
+                return new Dictionary<string, string>
+                {
+                    ["success"] = "false",
+                    ["message"] = "Pošiljalac nije prijavljen"
+                };
+            }
+
+            var validnostOdgovor = ObradiValidnostTransfera(transfer);
+
+            if (validnostOdgovor["success"] != "true")
+            {
+                return validnostOdgovor;
+            }
+
+            var odgovor = PosaljiZahtev("TRANSFER", transfer);
+
+            if (odgovor["success"] == "true")
+            {
+                _transferTransakcije.Add(transfer);
+            }
+
+            return odgovor;
+        }
+
+        private void SendResponse(Socket socket, Dictionary<string, string> odgovor)
+        {
+            byte[] podaciOdgovora = SerialazujObjekat(odgovor);
             socket.Send(podaciOdgovora);
         }
 
@@ -320,20 +381,20 @@ namespace Filijala
             try
             {
                 var zahtev = Tuple.Create(tip, podaci);
-                byte[] podaciZahteva = SerializujObjekat(zahtev);
-                _socketServera.SendTo(podaciZahteva, _krajnaAdresaServera);
+                byte[] podaciZahteva = SerialazujObjekat(zahtev);
+                _serverSocket.SendTo(podaciZahteva, _serverEndPoint);
 
                 byte[] buffer = new byte[2048];
-                EndPoint privremeniEP = new IPEndPoint(IPAddress.Any, 0);
-                _socketServera.ReceiveFrom(buffer, ref privremeniEP);
+                EndPoint tempEP = new IPEndPoint(IPAddress.Any, 0);
+                _serverSocket.ReceiveFrom(buffer, ref tempEP);
 
-                var odgovor = (Dictionary<string, string>)DeserializujObjekat(buffer);
+                var odgovor = (Dictionary<string, string>)DeserialazujObjekat(buffer);
                 Console.WriteLine(odgovor["message"]);
                 return odgovor;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Greška pri slanju zahteva: {ex.Message}");
+                Console.WriteLine($"Error pri slanju odgovora: {ex.Message}");
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
@@ -342,16 +403,16 @@ namespace Filijala
             }
         }
 
-        private void ZatvoriKlijentskiSocket(Socket socket)
+        private void ZatvoriKlijentskiSoket(Socket socket)
         {
             socket.Close();
-            _soketiKlijenata.Remove(socket);
-
+            _klijentSockets.Remove(socket);
+ 
         }
 
-        private void OčistiKonekcije()
+        private void PocistiKonekcije()
         {
-            foreach (var socket in _soketiKlijenata)
+            foreach (var socket in _klijentSockets)
             {
                 try
                 {
@@ -361,20 +422,20 @@ namespace Filijala
                 {
                 }
             }
-            _soketiKlijenata.Clear();
+            _klijentSockets.Clear();
             _povezaniKorisnici.Clear();
 
             try
             {
-                _socketServera.Close();
-                _slušalacKlijenata.Close();
+                _serverSocket.Close();
+                _klijentListener.Close();
             }
             catch
             {
             }
         }
 
-        private static byte[] SerializujObjekat(object obj)
+        private static byte[] SerialazujObjekat(object obj)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -384,9 +445,9 @@ namespace Filijala
             }
         }
 
-        private static object DeserializujObjekat(byte[] podaci)
+        private static object DeserialazujObjekat(byte[] data)
         {
-            using (MemoryStream ms = new MemoryStream(podaci))
+            using (MemoryStream ms = new MemoryStream(data))
             {
                 BinaryFormatter bf = new BinaryFormatter();
                 return bf.Deserialize(ms);
