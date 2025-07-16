@@ -12,7 +12,7 @@ namespace Client
 {
     class Program
     {
-        private const string IpFilijale = "127.0.0.1";
+        private const string IpFilijale = "192.168.0.15";
         private Socket _filijalaSocket;
         private bool _jePovezan;
         private Korisnik _trenutniKorisnik;

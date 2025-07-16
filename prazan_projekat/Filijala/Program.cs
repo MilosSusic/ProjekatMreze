@@ -13,7 +13,7 @@ namespace Filijala
 {
     class Program
     {
-        private const string ServerIp = "127.0.0.1";
+        private const string ServerIp = "192.168.0.15";
         private const int ServerPort = 5000;
         private const int DefaultFilijalaPort = 5001;
 
@@ -158,7 +158,7 @@ namespace Filijala
                 SendResponse(tempSocket, new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Branch has reached maximum capacity"
+                    ["message"] = "Filijala je dostigla maksimalni kapacitet"
                 });
                 tempSocket.Close();
                 return;
@@ -171,7 +171,7 @@ namespace Filijala
             SendResponse(klijentSocket, new Dictionary<string, string>
             {
                 ["success"] = "true",
-                ["message"] = "Connected to branch successfully"
+                ["message"] = "Povezivanje na filijalu je uspjesno"
             });
         }
 
@@ -258,7 +258,7 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not logged in"
+                    ["message"] = "Korisnik nije ulogovan"
                 };
             }
 
@@ -272,7 +272,7 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not logged in"
+                    ["message"] = "Korisnik nije ulogovan"
                 };
             }
 
@@ -301,7 +301,7 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "User not logged in"
+                    ["message"] = "Korisnik nije ulogovan"
                 };
             }
 
@@ -310,7 +310,7 @@ namespace Filijala
                 return new Dictionary<string, string>
                 {
                     ["success"] = "false",
-                    ["message"] = "Insufficient branch budget"
+                    ["message"] = "Nedovoljan budzet filijale"
                 };
             }
 
